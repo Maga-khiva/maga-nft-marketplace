@@ -1,5 +1,5 @@
 // frontend/src/components/MintSection.jsx
-import { useState } from 'react';
+import { useState, useEffect } from 'react'; // <-- ADDED useEffect
 import { useWeb3 } from '../hooks/Web3Context.js';
 
 // The backend API base URL for image/metadata upload
@@ -16,6 +16,17 @@ export const MintSection = () => {
   const [success, setSuccess] = useState('');
   const [filePreview, setFilePreview] = useState(null); // Added for image preview
   const [isDragging, setIsDragging] = useState(false); // State for visual drag cue
+
+  // NEW LOGIC: Success message timeout
+  useEffect(() => {
+    if (success) {
+      const timer = setTimeout(() => {
+        setSuccess('');
+      }, 5000); // Clear after 5 seconds
+      return () => clearTimeout(timer); // Cleanup on unmount or success change
+    }
+  }, [success]);
+
 
   const setFileAndPreview = (selectedFile) => {
     // Basic validation to only accept images
@@ -110,7 +121,7 @@ export const MintSection = () => {
       const tx = await contractWithSigner.mint(tokenURI);
       await tx.wait();
 
-      setSuccess(`NFT minted successfully! Token URI: ${tokenURI}`);
+      setSuccess(`NFT minted successfully!`);
       // Reset form
       setName('');
       setDescription('');

@@ -37,14 +37,15 @@ export const GallerySection = () => {
   const [imageModalOpen, setImageModalOpen] = useState(false);
   const [selectedImageNft, setSelectedImageNft] = useState(null);
 
-  // LOGIC PRESERVED
+  // LOGIC MODIFIED: Iterate backward for latest first
   const fetchNFTs = async () => {
     if (!contract) return;
     setLoading(true);
     try {
       const total = Number(await contract.totalSupply());
       const items = [];
-      for (let i = 0; i < total; i++) {
+      // MODIFIED LOOP: Start from the highest tokenId (total - 1) and go down to 0
+      for (let i = total - 1; i >= 0; i--) {
         try {
           const owner = await contract.ownerOf(i);
           const uri = await contract.tokenURI(i);
