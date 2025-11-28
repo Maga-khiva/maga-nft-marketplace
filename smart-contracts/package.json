@@ -1,0 +1,12 @@
+{
+  "name": "maga-marketplace-smart-contracts",
+  "version": "1.0.0",
+  "devDependencies": {
+    "@nomicfoundation/hardhat-toolbox": "^5.0.0",
+    "@openzeppelin/contracts": "^5.4.0",
+    "hardhat": "^2.22.10"
+  },
+  "dependencies": {
+    "dotenv": "^17.2.3"
+  }
+}
