@@ -287,10 +287,10 @@ export const GallerySection = () => {
         </div>
       )}
       
-      {/* IMAGE VIEW MODAL - FIX 1: Explicit w-screen h-screen and overflow-y-auto */}
+      {/* IMAGE VIEW MODAL - Correct fixed, full-screen for large viewing */}
       {imageModalOpen && selectedImageNft && (
         <div 
-          className="fixed top-0 left-0 w-screen h-screen bg-black bg-opacity-80 flex items-center justify-center z-[60] p-2 sm:p-4 overflow-y-auto" // <-- FIX APPLIED
+          className="fixed top-0 left-0 w-screen h-screen bg-black bg-opacity-80 flex items-center justify-center z-[60] p-2 sm:p-4 overflow-y-auto"
           onMouseDown={(e) => {
             if (e.target === e.currentTarget) {
               setImageModalOpen(false);
@@ -376,10 +376,11 @@ export const GallerySection = () => {
         </div>
       )}
 
-      {/* ACTION MODAL (List/Buy/Cancel) - FIX 1: Explicit w-screen h-screen and overflow-y-auto */}
+      {/* ACTION MODAL (List/Buy/Cancel) - FIX APPLIED: Revert to center-screen behavior */}
       {actionModalOpen && selectedNft && (
         <div 
-            className="fixed top-0 left-0 w-screen h-screen bg-black bg-opacity-70 flex items-center justify-center z-50 p-4 overflow-y-auto" // <-- FIX APPLIED
+            // Removed w-screen h-screen and left-0 top-0, relying on inset-0 and centering classes
+            className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50 p-4" 
             onClick={(e) => { if (e.target === e.currentTarget) setActionModalOpen(false); }}
         >
           <div className="app-card p-6 sm:p-8 max-w-sm w-full text-white" onClick={(e) => e.stopPropagation()}>
