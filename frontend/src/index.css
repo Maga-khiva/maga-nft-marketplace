@@ -29,3 +29,41 @@ textarea,
 .app-card {
   @apply bg-gray-800/50 backdrop-blur-md shadow-2xl border border-gray-700/50 rounded-xl;
 }
+
+/* Custom CSS for Responsive Modal Positioning */
+
+/* ------------------------------------------- */
+/* 1. Universal Overlay */
+/* Bu klass modal uchun asosiy fon va markazlashni ta'minlaydi. */
+.nft-modal-overlay {
+    background-color: rgba(0, 0, 0, 0.85);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 60; /* Z-index yuqori bo'lishi kerak */
+    padding: 1rem;
+}
+
+/* ------------------------------------------- */
+/* 2. Responsive Positioning Rule */
+/* Mobil (kichik ekranlar) uchun position: absolute ni o'rnatamiz */
+.nft-modal-responsive-positioning {
+    position: absolute; /* Mobil/kichik ekranlar uchun lokal (kartaga nisbatan) */
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 100%;
+}
+
+/* Desktop (768px va undan katta) uchun position: fixed qilib o'zgartiramiz */
+@media (min-width: 768px) {
+    .nft-modal-responsive-positioning {
+        position: fixed; /* Desktop uchun global (ekranga nisbatan) */
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        height: 100vh; /* Viewport balandligi */
+    }
+}
