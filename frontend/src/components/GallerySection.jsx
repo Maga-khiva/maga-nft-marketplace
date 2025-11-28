@@ -31,7 +31,7 @@ export const GallerySection = () => {
   const [modalType, setModalType] = useState('');
   const [selectedNft, setSelectedNft] = useState(null);
   const [price, setPrice] = useState('');
-  const [priceError, setPriceError] = useState(''); // NEW: State for price validation error
+  const [priceError, setPriceError] = useState(''); // State for price validation error
 
   // NEW STATE: For the image viewing modal
   const [imageModalOpen, setImageModalOpen] = useState(false);
@@ -44,7 +44,8 @@ export const GallerySection = () => {
     try {
       const total = Number(await contract.totalSupply());
       const items = [];
-      // MODIFIED LOOP: Start from the highest tokenId (total - 1) and go down to 0
+      
+      // FIX 2: REVERSED LOOP - Start from the highest tokenId (total - 1) and go down to 0
       for (let i = total - 1; i >= 0; i--) {
         try {
           const owner = await contract.ownerOf(i);
@@ -142,7 +143,7 @@ export const GallerySection = () => {
   const handleAction = async () => {
     if (!selectedNft || !contract || !signer) return;
     
-    // CRITICAL FIX 2: Check for price validation before proceeding with 'list'
+    // Check for price validation before proceeding with 'list'
     if (modalType === 'list') {
         if (!price || Number(price) <= 0 || priceError) {
             setPriceError('Price must be a positive number.');
@@ -170,12 +171,12 @@ export const GallerySection = () => {
 
   return (
     <div className="app-card p-4 sm:p-6"> 
-      <h2 className="text-xl sm:text-2xl font-extrabold mb-6 text-center text-cyan-300">NFT Marketplace</h2> {/* Typography Reduced */}
+      <h2 className="text-xl sm:text-2xl font-extrabold mb-6 text-center text-cyan-300">NFT Marketplace</h2>
       
       {/* Control Bar (Responsive stacking on phone screens) */}
       <div className="flex flex-col sm:flex-row gap-4 mb-6 justify-between items-center">
         
-        {/* Toggles - Typography Reduced */}
+        {/* Toggles */}
         <div className="flex space-x-2 p-1 bg-gray-900/50 rounded-lg border border-gray-700/50 w-full sm:w-auto text-xs sm:text-sm">
           <button 
             onClick={() => setView('all')} 
@@ -191,7 +192,7 @@ export const GallerySection = () => {
           </button>
         </div>
 
-        {/* Search Input and Refresh Button - Typography Reduced */}
+        {/* Search Input and Refresh Button */}
         <div className="flex gap-4 w-full sm:w-auto">
           <input
             type="text"
@@ -210,13 +211,13 @@ export const GallerySection = () => {
         </div>
       </div>
 
-      {/* Loading / Empty state - Typography Reduced */}
+      {/* Loading / Empty state */}
       {loading ? (
         <div className="text-center py-12 text-cyan-400 font-bold text-base">Loading NFTs from IPFS...</div>
       ) : filteredNfts.length === 0 ? (
         <div className="text-center py-12 text-gray-400 text-sm">No NFTs found. Time to mint one or check your filters!</div>
       ) : (
-        // NFT Grid - Typography Reduced
+        // NFT Grid
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 sm:gap-8">
           {filteredNfts.map((nft) => (
             <div 
@@ -260,7 +261,7 @@ export const GallerySection = () => {
                     Owner: {account && nft.owner.toLowerCase() === account.toLowerCase() ? 'You' : `${nft.owner.slice(0, 6)}...${nft.owner.slice(-4)}`}
                 </p>
 
-                {/* Action Buttons - Typography Reduced */}
+                {/* Action Buttons */}
                 <div className="mt-4">
                   {account && nft.owner.toLowerCase() === account.toLowerCase() ? (
                     nft.price > 0 ? (
@@ -286,10 +287,10 @@ export const GallerySection = () => {
         </div>
       )}
       
-      {/* IMAGE VIEW MODAL - Typography Reduced */}
+      {/* IMAGE VIEW MODAL - FIX 1: Explicit w-screen h-screen and overflow-y-auto */}
       {imageModalOpen && selectedImageNft && (
         <div 
-          className="fixed inset-0 bg-black bg-opacity-80 flex items-center justify-center z-[60] p-2 sm:p-4" 
+          className="fixed top-0 left-0 w-screen h-screen bg-black bg-opacity-80 flex items-center justify-center z-[60] p-2 sm:p-4 overflow-y-auto" // <-- FIX APPLIED
           onMouseDown={(e) => {
             if (e.target === e.currentTarget) {
               setImageModalOpen(false);
@@ -340,7 +341,7 @@ export const GallerySection = () => {
                     </p>
                 </div>
                 
-                {/* Action button in the view modal - Typography Reduced */}
+                {/* Action button in the view modal */}
                 <div className="pt-3 sm:pt-4">
                     {account && selectedImageNft.owner.toLowerCase() === account.toLowerCase() ? (
                         selectedImageNft.price > 0 ? (
@@ -375,10 +376,10 @@ export const GallerySection = () => {
         </div>
       )}
 
-      {/* ACTION MODAL (List/Buy/Cancel) - Typography Reduced + Validation Added */}
+      {/* ACTION MODAL (List/Buy/Cancel) - FIX 1: Explicit w-screen h-screen and overflow-y-auto */}
       {actionModalOpen && selectedNft && (
         <div 
-            className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50 p-4"
+            className="fixed top-0 left-0 w-screen h-screen bg-black bg-opacity-70 flex items-center justify-center z-50 p-4 overflow-y-auto" // <-- FIX APPLIED
             onClick={(e) => { if (e.target === e.currentTarget) setActionModalOpen(false); }}
         >
           <div className="app-card p-6 sm:p-8 max-w-sm w-full text-white" onClick={(e) => e.stopPropagation()}>
@@ -403,7 +404,7 @@ export const GallerySection = () => {
                   type="text"
                   placeholder="Price in ETH (e.g., 0.01)"
                   value={price}
-                  onChange={handlePriceChange} // CRITICAL FIX 2: Added validation handler
+                  onChange={handlePriceChange} // Added validation handler
                   className="app-input mb-4 text-sm"
                 />
                 {priceError && <p className="text-red-400 text-xs mb-4">{priceError}</p>}
