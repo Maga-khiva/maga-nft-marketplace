@@ -1,51 +1,144 @@
-# Maga NFT Marketplace
+# MAGA Orbit Market
 
-A full-stack NFT marketplace built with React (Vite + Tailwind), Express backend (Pinata IPFS upload), and Hardhat smart contracts on Ethereum (Sepolia testnet).
+A full-stack NFT marketplace dApp for minting, listing, buying, and bidding on NFTs.
+Built with React (Vite), Express, Hardhat, and OpenZeppelin on Ethereum Sepolia.
 
-![Maga NFT Marketplace Screenshot](./frontend/public/screenshot.png)  
+## Live Links
+- Frontend (Netlify): https://maga-nft-marketplace.netlify.app/
+- Backend (Render): https://maga-nft-marketplace.onrender.com
+
+## Screenshot
+![Maga NFT Marketplace Screenshot](./frontend/public/screenshot.png)
+
+## Smart Contract
+- Network: **Sepolia (11155111)**
+- Address: **`0x3eCc0a9De856Fc9169668a3e581A4C513F61C369`**
 
 ## Features
-- **Mint NFTs**: Upload image, add name/description, mint on Sepolia.
-- **Gallery**: View all/my NFTs with search, list/cancel/buy.
-- **Web3 Integration**: MetaMask connect, real-time events.
-- **IPFS Storage**: Images/metadata pinned via Pinata.
-- **Responsive Design**: Works on desktop/mobile.
-- **Live Demo**: https://maga-nft-marketplace.netlify.app/
+- Wallet connection (MetaMask)
+- Mint NFT with image + metadata upload to IPFS (Pinata)
+- NFT gallery with search and ownership filtering
+- List / cancel / buy fixed-price listings
+- Place / cancel / accept top offers (bid flow)
+- Responsive UI with dark/light theme and animated glacier-style design
 
 ## Tech Stack
-- **Frontend**: React, Vite, Tailwind CSS, Ethers.js
-- **Backend**: Express.js, Multer (uploads), Axios (Pinata API)
-- **Smart Contract**: Solidity, Hardhat, OpenZeppelin (ERC721)
-- **Deployment**: Netlify (frontend + functions), Sepolia testnet, Render(backend)
+- Frontend: React, Vite, Tailwind CSS, Ethers.js
+- Backend: Express, Multer, Axios, CORS
+- Smart Contracts: Solidity, Hardhat, OpenZeppelin
+- Storage: IPFS via Pinata
+- Hosting: Netlify (frontend), Render (backend)
 
-## Setup & Run Locally
-1. Clone repo: `git clone https://github.com/Maga-khiva/maga-nft-marketplace`
-2. Install deps:
-   - Backend: `cd backend && npm install`
-   - Frontend: `cd frontend && npm install`
-   - Smart contracts: `cd smart-contracts && npm install`
-3. Copy env templates:
-   - Root reference: `cp .env.example .env` (optional, documentation only)
-   - Backend: `cp backend/.env.example backend/.env`
-   - Frontend: `cp frontend/.env.example frontend/.env`
-   - Smart contracts: `cp smart-contracts/.env.example smart-contracts/.env`
-4. Fill required values:
-   - `backend/.env`: `PINATA_API_KEY`, `PINATA_API_SECRET`
-   - `frontend/.env`: leave `VITE_REQUIRED_CHAIN_ID=31337` for local Hardhat
-   - `smart-contracts/.env`: only needed for Sepolia deploy
-5. Run local blockchain: `cd smart-contracts && npx hardhat node`
-6. Deploy contract to localhost: `cd smart-contracts && npx hardhat run scripts/deploy.js --network localhost`
-   - Copy the printed address into `frontend/.env` as `VITE_CONTRACT_ADDRESS=...`
-7. Run backend: `cd backend && npm start`
-8. Run frontend: `cd frontend && npm start` (or `npm run dev`)
-9. Open `http://localhost:5173`, connect MetaMask to `Localhost 8545` (`chainId 31337`), then mint/list/buy.
+## Repository Structure
+```text
+.
+├── frontend/         # React dApp
+├── backend/          # API for uploads + IPFS pinning
+├── smart-contracts/  # Solidity contracts + tests + deploy scripts
+└── README.md
+```
 
-## Deployment
-- **Smart Contract**: Deployed on Sepolia:0xDc85d81583b505D0512410daaB009c5b183e5252
-- **Backend**: Render - https://maga-nft-marketplace.onrender.com
-- **Frontend**: Netlify Site (Vite build)
+## Local Development
+### 1) Clone
+```bash
+git clone https://github.com/Maga-khiva/maga-nft-marketplace
+cd maga-nft-marketplace
+```
+
+### 2) Install dependencies
+```bash
+cd backend && npm install
+cd ../frontend && npm install
+cd ../smart-contracts && npm install
+```
+
+### 3) Create env files
+```bash
+cp backend/.env.example backend/.env
+cp frontend/.env.example frontend/.env
+cp smart-contracts/.env.example smart-contracts/.env
+```
+
+### 4) Configure env values
+`backend/.env`
+- `PINATA_API_KEY`
+- `PINATA_API_SECRET`
+- `CORS_ALLOWED_ORIGINS` (include your frontend origin)
+
+`frontend/.env`
+- `VITE_CONTRACT_ADDRESS` (local or Sepolia address)
+- `VITE_API_BASE_URL` (local backend or Render URL)
+- `VITE_REQUIRED_CHAIN_ID` (`31337` local, `11155111` Sepolia)
+
+`smart-contracts/.env`
+- `SEPOLIA_RPC_URL`
+- `DEPLOYER_PRIVATE_KEY`
+
+### 5) Run locally (Hardhat node)
+Terminal A:
+```bash
+cd smart-contracts
+npx hardhat node
+```
+
+Terminal B:
+```bash
+cd smart-contracts
+npm run deploy:localhost
+npm run export:abi
+```
+
+Terminal C:
+```bash
+cd backend
+npm start
+```
+
+Terminal D:
+```bash
+cd frontend
+npm run dev
+```
+
+Open `http://localhost:5173`, connect MetaMask to Hardhat local network, then mint/list/buy/bid.
+
+## Deploying Contract to Sepolia
+```bash
+cd smart-contracts
+npm run deploy:sepolia
+npm run export:abi
+```
+
+After deployment:
+1. Update `VITE_CONTRACT_ADDRESS` in `frontend/.env`
+2. Update Netlify env var `VITE_CONTRACT_ADDRESS` with **address only** (no `KEY=` prefix)
+3. Redeploy frontend
+
+## NPM Scripts
+### Frontend
+- `npm run dev`
+- `npm run build`
+- `npm run preview`
+
+### Backend
+- `npm start`
+- `npm run dev`
+
+### Smart Contracts
+- `npm test`
+- `npm run deploy:localhost`
+- `npm run deploy:sepolia`
+- `npm run export:abi`
+
+## Troubleshooting
+- `invalid ENS name ... VITE_CONTRACT_ADDRESS=...`:
+  - Your env var value is wrong. Set value to only `0x...`.
+- Mint stuck on “Processing…” on hosted app:
+  - Check `VITE_API_BASE_URL` and backend CORS settings.
+- Local minted NFTs not visible on Netlify:
+  - Local Hardhat chain data is separate from Sepolia.
 
 ## License
-MIT — Free to use/fork.
+MIT
 
-Built by Maga-khiva — Questions? Open an issue!
+Built by Maga-khiva.
