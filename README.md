@@ -43,6 +43,36 @@ Built with React (Vite), Express, Hardhat, and OpenZeppelin on Ethereum Sepolia.
 └── README.md
 ```
 
+## Architecture Overview
+This project uses a simple 3-layer dApp architecture:
+- Frontend (`frontend/`): React + Ethers.js UI for wallet connection, minting, listings, purchases, and offers.
+- Backend (`backend/`): Express API that accepts uploads and pins NFT media/metadata to IPFS through Pinata.
+- Smart contract (`smart-contracts/contracts/MagaMarketplace.sol`): On-chain ERC-721 marketplace logic for ownership, listing state, and offer escrow.
+
+Flow:
+1. User uploads NFT data in the frontend.
+2. Backend pins files/metadata to IPFS and returns a metadata URI.
+3. Frontend calls `mint(tokenURI)` on `MagaMarketplace`.
+4. Marketplace actions (`list`, `buy`, `placeOffer`, `cancelOffer`, `acceptOffer`) are executed fully on-chain.
+
+## Smart Contract Features
+`MagaMarketplace` combines NFT minting and marketplace features in one ERC-721 contract:
+- ERC-721 + metadata storage using OpenZeppelin `ERC721URIStorage`.
+- Incremental minting with `mint(string tokenURI)` and `totalSupply()` tracking via `_nextTokenId`.
+- Fixed-price listings using `list(tokenId, price)`, `cancel(tokenId)`, and `buy(tokenId)`.
+- Listing seller snapshot via `listingSellers[tokenId]` to prevent paying outdated owners.
+- Offer/bid system with escrowed ETH via `placeOffer(tokenId)`, `cancelOffer(tokenId)`, and `acceptOffer(tokenId)`.
+- Event emission for all trading actions: `Listed`, `ListingCancelled`, `Bought`, `OfferPlaced`, `OfferCancelled`, `OfferAccepted`.
+
+## Security Patterns Used
+The contract applies multiple defensive patterns:
+- Reentrancy protection: `buy`, `placeOffer`, `cancelOffer`, and `acceptOffer` are guarded with `nonReentrant`.
+- Checks-Effects-Interactions ordering: state is updated/deleted before external ETH transfers.
+- Strict authorization checks: owner-only listing/cancel/accept paths (`ownerOf(tokenId) == msg.sender`).
+- Stale listing prevention: `buy` verifies `ownerOf(tokenId) == listingSellers[tokenId]` before transfer/payment.
+- Escrowed highest-offer model: only the top offer is stored; previous bidder is refunded before replacement.
+- Safe NFT transfer semantics: uses `_safeTransfer` to reduce token loss risk with receiver contracts.
+
 ## Local Development
 ### 1) Clone
 ```bash
