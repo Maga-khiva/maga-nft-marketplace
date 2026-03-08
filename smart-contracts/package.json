@@ -1,12 +1,23 @@
 {
   "name": "maga-marketplace-smart-contracts",
   "version": "1.0.0",
+  "type": "module",
   "devDependencies": {
-    "@nomicfoundation/hardhat-toolbox": "^5.0.0",
+    "@nomicfoundation/hardhat-toolbox-mocha-ethers": "^3.0.3",
     "@openzeppelin/contracts": "^5.4.0",
-    "hardhat": "^2.22.10"
+    "hardhat": "^3.1.10"
   },
   "dependencies": {
     "dotenv": "^17.2.3"
+  },
+  "scripts": {
+    "test": "hardhat test",
+    "deploy:sepolia": "hardhat run scripts/deploy.js --network sepolia",
+    "deploy:localhost": "hardhat run scripts/deploy.js --network localhost",
+    "export:abi": "node scripts/export-abi.js"
+  },
+  "overrides": {
+    "diff": "8.0.3",
+    "serialize-javascript": "7.0.3"
   }
 }

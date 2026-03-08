@@ -1,5 +1,5 @@
 // frontend/src/components/MintSection.jsx
-import { useState, useEffect } from 'react'; // <-- ADDED useEffect
+import { useState, useEffect, useRef } from 'react';
 import { useWeb3 } from '../hooks/Web3Context.js';
 
 // The backend API base URL for image/metadata upload
@@ -14,8 +14,9 @@ export const MintSection = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
-  const [filePreview, setFilePreview] = useState(null); // Added for image preview
-  const [isDragging, setIsDragging] = useState(false); // State for visual drag cue
+  const [filePreview, setFilePreview] = useState(null);
+  const [isDragging, setIsDragging] = useState(false);
+  const fileInputRef = useRef(null);
 
   // NEW LOGIC: Success message timeout
   useEffect(() => {
@@ -112,7 +113,20 @@ export const MintSection = () => {
         body: formData,
       });
 
-      if (!uploadRes.ok) throw new Error('Upload failed on backend/IPFS side.');
+      if (!uploadRes.ok) {
+        let backendMessage = '';
+        try {
+          const errorPayload = await uploadRes.json();
+          backendMessage = errorPayload?.error || '';
+        } catch {
+          backendMessage = '';
+        }
+        throw new Error(
+          backendMessage
+            ? `Upload failed (${uploadRes.status}): ${backendMessage}`
+            : `Upload failed (${uploadRes.status}). Check backend /upload route and CORS settings.`,
+        );
+      }
       const { tokenURI } = await uploadRes.json();
       
       if (!tokenURI) throw new Error('Missing tokenURI from upload response.');
@@ -137,13 +151,15 @@ export const MintSection = () => {
     }
   };
 
-  // Helper to visually hide the native file input but keep its functionality
-  const triggerFileInput = () => document.getElementById('file-upload').click();
+  const triggerFileInput = () => fileInputRef.current?.click();
 
 
   return (
-    <div className="p-6 rounded-xl bg-gray-800/50 backdrop-blur-md shadow-2xl border border-gray-700/50">
-      <h2 className="text-3xl font-bold mb-6 text-cyan-300 font-poppins text-center">Create New NFT</h2>
+    <section className="app-card scene-enter p-6 sm:p-7">
+      <div className="mb-6">
+        <p className="uppercase tracking-[0.2em] text-[11px] text-teal-200/70 mb-2">Creator Studio</p>
+        <h2 className="text-2xl sm:text-3xl font-bold text-slate-50">Create New NFT</h2>
+      </div>
       
       {/* NFT Metadata Inputs */}
       <input
@@ -152,20 +168,22 @@ export const MintSection = () => {
         value={name}
         onChange={(e) => setName(e.target.value)}
         className="app-input mb-4"
+        aria-label="NFT name"
       />
       <textarea
         placeholder="Description"
         value={description}
         onChange={(e) => setDescription(e.target.value)}
         className="app-input mb-4 h-24 resize-none"
+        aria-label="NFT description"
       />
 
       {/* File Upload / Drag-and-Drop Area */}
       <div 
           className={`flex flex-col items-center justify-center p-6 mb-4 rounded-xl border-2 border-dashed transition duration-300 cursor-pointer 
             ${isDragging 
-                ? 'border-cyan-400 bg-gray-700/70 ring-2 ring-cyan-400' 
-                : 'border-gray-600 hover:border-cyan-500 hover:bg-gray-700/50'
+                ? 'border-teal-300 bg-teal-500/10 ring-2 ring-teal-300/60' 
+                : 'border-slate-600 hover:border-teal-300 hover:bg-slate-700/40'
             }
           `}
           onDragEnter={handleDragEnter}
@@ -177,10 +195,12 @@ export const MintSection = () => {
           {/* Hidden native input */}
           <input 
               type="file" 
-              id="file-upload" 
+              id="file-upload"
+              ref={fileInputRef}
               onChange={handleFileChange} 
-              className="hidden" // Visually hide it
+              className="hidden"
               accept="image/*"
+              aria-label="Upload NFT image"
           />
 
           {/* Content for the drop zone */}
@@ -189,8 +209,8 @@ export const MintSection = () => {
                 <svg className="mx-auto h-12 w-12 text-gray-400" stroke="currentColor" fill="none" viewBox="0 0 48 48" aria-hidden="true">
                     <path d="M28 8H10c-1.1 0-2 .9-2 2v28c0 1.1.9 2 2 2h28c1.1 0 2-.9 2-2V20M20 16v16m-8-8h16m12-8l-8-8m0 8l8 8" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                 </svg>
-                <p className="mt-1 text-sm text-gray-400">Drag 'n' drop image here, or <span className="text-cyan-400 font-medium">click to select</span></p>
-                <p className="text-xs text-gray-500">PNG, JPG, GIF up to 1MB</p>
+                <p className="mt-1 text-sm text-slate-300">Drag and drop image here, or <span className="text-teal-300 font-semibold">click to select</span></p>
+                <p className="text-xs text-gray-500">PNG, JPG, GIF up to 5MB</p>
             </div>
           )}
 
@@ -210,14 +230,14 @@ export const MintSection = () => {
       </div>
 
       {/* Messages */}
-      {error && <p className="text-red-400 mb-4 font-semibold text-center">{error}</p>}
-      {success && <p className="text-green-400 mb-4 font-semibold text-center">{success}</p>}
+      {error && <p className="text-red-300 mb-4 font-semibold text-center">{error}</p>}
+      {success && <p className="text-emerald-300 mb-4 font-semibold text-center">{success}</p>}
       
       {/* Mint Button */}
       <button
         onClick={handleMint}
         disabled={loading || !account || !contractWithSigner || !file}
-        className="app-button-primary w-full text-lg hover-glow" // Applied global button styling
+        className="app-button-primary w-full text-base sm:text-lg"
       >
         {loading ? (
           <span className="flex items-center justify-center">
@@ -232,7 +252,7 @@ export const MintSection = () => {
         )}
       </button>
       
-      {!account && <p className="text-gray-500 text-sm mt-3 text-center">Connect your wallet to enable minting.</p>}
-    </div>
+      {!account && <p className="text-gray-400 text-sm mt-3 text-center">Connect your wallet to enable minting.</p>}
+    </section>
   );
 };

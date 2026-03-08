@@ -19,3 +19,8 @@ lerna-debug.log*
 
 # Local Vite cache
 .vite
+
+# Hardhat 3 local outputs
+.hh3-artifacts
+.hh3-cache
+types

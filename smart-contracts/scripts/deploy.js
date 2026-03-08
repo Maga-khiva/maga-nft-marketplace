@@ -1,11 +1,11 @@
 // smart-contracts/scripts/deploy.js
-const hre = require("hardhat");
+import { network } from "hardhat";
 
 async function main() {
-  const MagaMarketplace = await hre.ethers.getContractFactory("MagaMarketplace");
-  const marketplace = await MagaMarketplace.deploy();
+  const { ethers } = await network.connect();
+  const marketplace = await ethers.deployContract("MagaMarketplace");
   await marketplace.waitForDeployment();
-  console.log("MagaMarketplace deployed to:", await marketplace.getAddress());
+  console.log("MagaMarketplace deployed to:", marketplace.target);
 }
 
 main().catch((error) => {

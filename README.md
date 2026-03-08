@@ -24,16 +24,24 @@ A full-stack NFT marketplace built with React (Vite + Tailwind), Express backend
    - Backend: `cd backend && npm install`
    - Frontend: `cd frontend && npm install`
    - Smart contracts: `cd smart-contracts && npm install`
-3. Copy `.env.example` to `.env` in root + frontend/backend — fill keys (Pinata, RPC, private key).
-4. Run local blockchain: `cd smart-contracts && npx hardhat node`
-5. Deploy contract: New terminal → `npx hardhat run scripts/deploy.js --network localhost`
-6. Update `frontend/.env`: `VITE_CONTRACT_ADDRESS=deployed_address` & `VITE_API_BASE_URL=http://localhost:3000`
+3. Copy env templates:
+   - Root reference: `cp .env.example .env` (optional, documentation only)
+   - Backend: `cp backend/.env.example backend/.env`
+   - Frontend: `cp frontend/.env.example frontend/.env`
+   - Smart contracts: `cp smart-contracts/.env.example smart-contracts/.env`
+4. Fill required values:
+   - `backend/.env`: `PINATA_API_KEY`, `PINATA_API_SECRET`
+   - `frontend/.env`: leave `VITE_REQUIRED_CHAIN_ID=31337` for local Hardhat
+   - `smart-contracts/.env`: only needed for Sepolia deploy
+5. Run local blockchain: `cd smart-contracts && npx hardhat node`
+6. Deploy contract to localhost: `cd smart-contracts && npx hardhat run scripts/deploy.js --network localhost`
+   - Copy the printed address into `frontend/.env` as `VITE_CONTRACT_ADDRESS=...`
 7. Run backend: `cd backend && npm start`
-8. Run frontend: `cd frontend && npm run dev`
-9. Open http://localhost:5173 → Connect MetaMask (Localhost 8545) → Mint NFTs!
+8. Run frontend: `cd frontend && npm start` (or `npm run dev`)
+9. Open `http://localhost:5173`, connect MetaMask to `Localhost 8545` (`chainId 31337`), then mint/list/buy.
 
 ## Deployment
-- **Smart Contract**: Deployed on Sepolia:0x9d0D3D8aEdE7740Cd3DB3FFeBB3C4BfB18FcD981
+- **Smart Contract**: Deployed on Sepolia:0xDc85d81583b505D0512410daaB009c5b183e5252
 - **Backend**: Render - https://maga-nft-marketplace.onrender.com
 - **Frontend**: Netlify Site (Vite build)
 

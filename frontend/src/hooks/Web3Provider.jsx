@@ -2,6 +2,7 @@
 import { useState, useEffect } from 'react';
 import { ethers } from 'ethers';
 import { Web3Context } from './Web3Context.js';
+import contractArtifact from '../abi/MagaMarketplace.json';
 
 export const Web3Provider = ({ children }) => {
   const [provider, setProvider] = useState(null);
@@ -13,76 +14,70 @@ export const Web3Provider = ({ children }) => {
   const [web3Error, setWeb3Error] = useState(null);
 
   const contractAddress = import.meta.env.VITE_CONTRACT_ADDRESS;
-  const requiredChainId = 11155111;  // ←←← SEPOLIA CHAIN ID
+  const requiredChainId = Number(import.meta.env.VITE_REQUIRED_CHAIN_ID || 11155111);
 
-  const abi = [
-    "function mint(string memory tokenURI) public returns (uint256)",
-    "function list(uint256 tokenId, uint256 price) public",
-    "function cancel(uint256 tokenId) public",
-    "function buy(uint256 tokenId) public payable",
-    "function totalSupply() public view returns (uint256)",
-    "function ownerOf(uint256 tokenId) public view returns (address)",
-    "function tokenURI(uint256 tokenId) public view returns (string memory)",
-    "function listings(uint256 tokenId) public view returns (uint256)",
-    "event Transfer(address indexed from, address indexed to, uint256 indexed tokenId)",
-    "event Listed(uint256 indexed tokenId, uint256 price)",
-    "event ListingCancelled(uint256 indexed tokenId)",
-    "event Bought(uint256 indexed tokenId, address buyer, uint256 price)"
-  ];
+  const abi = contractArtifact.abi;
 
-  useEffect(() => {
-    const init = async () => {
-      if (!window.ethereum) {
-        setWeb3Error('Install MetaMask!');
+  const resetWeb3State = () => {
+    setSigner(null);
+    setAccount(null);
+    setContract(null);
+    setContractWithSigner(null);
+  };
+
+  const syncWeb3State = async (web3Provider) => {
+    try {
+      const network = await web3Provider.getNetwork();
+      const currentChainId = Number(network.chainId);
+      setChainId(currentChainId);
+
+      if (!contractAddress) {
+        setWeb3Error('Missing VITE_CONTRACT_ADDRESS');
+        resetWeb3State();
         return;
       }
 
-      const web3Provider = new ethers.BrowserProvider(window.ethereum);
-      setProvider(web3Provider);
-
-      try {
-        const network = await web3Provider.getNetwork();
-        const currentChainId = Number(network.chainId);
-        setChainId(currentChainId);
-
-        if (currentChainId !== requiredChainId) {
-          setWeb3Error(`Wrong network! Switch to Sepolia (chainId 11155111)`);
-          return;
-        }
-
-        const accounts = await web3Provider.listAccounts();
-        if (accounts.length > 0) {
-          const userSigner = await web3Provider.getSigner();
-          setSigner(userSigner);
-          setAccount(accounts[0]);
-
-          const readOnlyContract = new ethers.Contract(contractAddress, abi, web3Provider);
-          const writableContract = new ethers.Contract(contractAddress, abi, userSigner);
-          
-          setContract(readOnlyContract);
-          setContractWithSigner(writableContract);
-        }
-
-        setWeb3Error(null);
-      } catch (err) {
-        setWeb3Error('Connection failed: ' + (err.message || 'Unknown error'));
+      if (currentChainId !== requiredChainId) {
+        setWeb3Error(`Wrong network. Required chainId: ${requiredChainId}`);
+        resetWeb3State();
+        return;
       }
-    };
 
-    init();
-
-    const handleAccountsChanged = (accounts) => {
+      const accounts = await web3Provider.listAccounts();
       if (accounts.length === 0) {
-        setAccount(null);
-        setSigner(null);
-        setContract(null);
-        setContractWithSigner(null);
-      } else {
-        window.location.reload();
+        resetWeb3State();
+        setWeb3Error(null);
+        return;
       }
-    };
 
-    const handleChainChanged = () => window.location.reload();
+      const userSigner = await web3Provider.getSigner();
+      const accountAddress = await userSigner.getAddress();
+      const readOnlyContract = new ethers.Contract(contractAddress, abi, web3Provider);
+      const writableContract = new ethers.Contract(contractAddress, abi, userSigner);
+
+      setSigner(userSigner);
+      setAccount(accountAddress);
+      setContract(readOnlyContract);
+      setContractWithSigner(writableContract);
+      setWeb3Error(null);
+    } catch (err) {
+      resetWeb3State();
+      setWeb3Error('Connection failed: ' + (err.message || 'Unknown error'));
+    }
+  };
+
+  useEffect(() => {
+    if (!window.ethereum) {
+      setWeb3Error('Install MetaMask!');
+      return;
+    }
+
+    const web3Provider = new ethers.BrowserProvider(window.ethereum);
+    setProvider(web3Provider);
+    syncWeb3State(web3Provider);
+
+    const handleAccountsChanged = () => syncWeb3State(web3Provider);
+    const handleChainChanged = () => syncWeb3State(web3Provider);
 
     window.ethereum.on('accountsChanged', handleAccountsChanged);
     window.ethereum.on('chainChanged', handleChainChanged);
@@ -91,12 +86,12 @@ export const Web3Provider = ({ children }) => {
       window.ethereum.removeListener('accountsChanged', handleAccountsChanged);
       window.ethereum.removeListener('chainChanged', handleChainChanged);
     };
-  }, []);
+  }, [contractAddress, requiredChainId]);
 
   const connectWallet = async () => {
     if (provider) {
       await window.ethereum.request({ method: 'eth_requestAccounts' });
-      window.location.reload();
+      await syncWeb3State(provider);
     }
   };
 

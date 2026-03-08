@@ -3,9 +3,28 @@
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" href="/logo.png" />
+    <meta name="theme-color" content="#0f1824" />
+    <meta name="color-scheme" content="dark light" />
+    <meta name="description" content="MAGA Orbit Market - modern NFT marketplace for minting, listing, and trading on-chain collectibles." />
+    <meta property="og:title" content="MAGA Orbit Market" />
+    <meta property="og:description" content="Mint, list, and trade NFTs with a modern Web3 marketplace experience." />
     <meta property="og:image" content="/logo.png" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Maga Market Place</title>
+    <title>MAGA Orbit Market</title>
+    <script>
+      (function() {
+        try {
+          var key = 'maga-ui-theme';
+          var stored = localStorage.getItem(key);
+          var theme = (stored === 'light' || stored === 'dark')
+            ? stored
+            : (window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark');
+          document.documentElement.setAttribute('data-theme', theme);
+          var themeMeta = document.querySelector('meta[name="theme-color"]');
+          if (themeMeta) themeMeta.setAttribute('content', theme === 'light' ? '#f1f5f9' : '#0f1824');
+        } catch (_) {}
+      })();
+    </script>
   </head>
   <body>
     <div id="root"></div>
