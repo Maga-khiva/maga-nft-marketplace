@@ -13,7 +13,10 @@ export const Web3Provider = ({ children }) => {
   const [contractWithSigner, setContractWithSigner] = useState(null);
   const [web3Error, setWeb3Error] = useState(null);
 
-  const contractAddress = import.meta.env.VITE_CONTRACT_ADDRESS;
+  const rawContractAddress = (import.meta.env.VITE_CONTRACT_ADDRESS || '').trim();
+  const contractAddress = rawContractAddress.includes('=')
+    ? rawContractAddress.split('=').pop().trim()
+    : rawContractAddress;
   const requiredChainId = Number(import.meta.env.VITE_REQUIRED_CHAIN_ID || 11155111);
 
   const abi = contractArtifact.abi;
@@ -33,6 +36,12 @@ export const Web3Provider = ({ children }) => {
 
       if (!contractAddress) {
         setWeb3Error('Missing VITE_CONTRACT_ADDRESS');
+        resetWeb3State();
+        return;
+      }
+
+      if (!ethers.isAddress(contractAddress)) {
+        setWeb3Error('Invalid VITE_CONTRACT_ADDRESS format');
         resetWeb3State();
         return;
       }

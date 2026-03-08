@@ -3,6 +3,7 @@ import { MintSection } from '../components/MintSection.jsx';
 import { GallerySection } from '../components/GallerySection.jsx';
 import { useWeb3 } from '../hooks/Web3Context.js';
 import { useEffect, useState } from 'react';
+import logoImage from '../../logo.png';
 
 // Icon placeholder
 const WalletIcon = () => (
@@ -91,7 +92,7 @@ export const Marketplace = () => {
             onClick={() => window.location.reload()}
           >
             <div className="app-brand-mark">
-              <img src="/logo.png" alt="MAGA Orbit logo" className="h-5 w-5 sm:h-6 sm:w-6 object-contain" />
+              <img src={logoImage} alt="MAGA Orbit logo" className="h-5 w-5 sm:h-6 sm:w-6 object-contain" />
             </div>
             <h1 className="text-sm sm:text-xl font-bold tracking-wide">
               MAGA ORBIT MARKET
