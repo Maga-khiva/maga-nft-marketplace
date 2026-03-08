@@ -3,6 +3,11 @@
 A full-stack NFT marketplace dApp for minting, listing, buying, and bidding on NFTs.
 Built with React (Vite), Express, Hardhat, and OpenZeppelin on Ethereum Sepolia.
 
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Network: Sepolia](https://img.shields.io/badge/Network-Sepolia-6f42c1)](https://sepolia.etherscan.io/address/0x3eCc0a9De856Fc9169668a3e581A4C513F61C369)
+[![Frontend: Netlify](https://img.shields.io/badge/Frontend-Netlify-00c7b7)](https://maga-nft-marketplace.netlify.app/)
+[![Backend: Render](https://img.shields.io/badge/Backend-Render-5f4dee)](https://maga-nft-marketplace.onrender.com)
+
 ## Live Links
 - Frontend (Netlify): https://maga-nft-marketplace.netlify.app/
 - Backend (Render): https://maga-nft-marketplace.onrender.com
