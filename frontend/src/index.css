@@ -107,7 +107,14 @@ a,
 button,
 input,
 textarea {
-  @apply focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--brand)]/70;
+  @apply focus-visible:outline-none focus-visible:ring-2;
+}
+
+a:focus-visible,
+button:focus-visible,
+input:focus-visible,
+textarea:focus-visible {
+  --tw-ring-color: color-mix(in srgb, var(--brand) 70%, transparent);
 }
 
 /* Functional monospace utility for prices, addresses, token IDs. */
