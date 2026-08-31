@@ -44,7 +44,7 @@ export const GallerySection = () => {
           const listingSeller = await contract.listingSellers(i);
           const highestOffer = await contract.highestOffers(i);
 
-          const metadataRes = await fetch(uri.replace('ipfs://', 'https://ipfs.io/ipfs/'));
+          const metadataRes = await fetch(uri.replace('ipfs://', 'https://gateway.pinata.cloud/ipfs/<CID>'));
           const metadata = await metadataRes.json();
 
           items.push({
@@ -52,7 +52,7 @@ export const GallerySection = () => {
             owner,
             name: metadata.name || 'Unnamed NFT',
             description: metadata.description || '',
-            image: metadata.image ? metadata.image.replace('ipfs://', 'https://ipfs.io/ipfs/') : null,
+            image: metadata.image ? metadata.image.replace('ipfs://', 'https://gateway.pinata.cloud/ipfs/<CID>') : null,
             price: listingPrice,
             listingSeller,
             topOfferBidder: highestOffer[0],
