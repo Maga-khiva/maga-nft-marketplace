@@ -17,12 +17,21 @@ contract MagaMarketplace is ERC721URIStorage, Ownable, ReentrancyGuard {
     mapping(uint256 => address) public listingSellers; // tokenId => seller snapshot at listing time
     mapping(uint256 => Offer) public highestOffers; // tokenId => top escrowed offer
 
+    /// @dev Pull-payment fallback. If a direct refund to an outbid bidder
+    /// fails (e.g. their address rejects ETH), the amount is credited here
+    /// instead of blocking the whole transaction. The bidder can then call
+    /// withdraw() themselves at any time. This prevents a malicious bidder
+    /// from permanently blocking everyone else's ability to outbid them.
+    mapping(address => uint256) public pendingReturns;
+
     event Listed(uint256 indexed tokenId, uint256 price);
     event ListingCancelled(uint256 indexed tokenId);
     event Bought(uint256 indexed tokenId, address buyer, uint256 price);
     event OfferPlaced(uint256 indexed tokenId, address indexed bidder, uint256 amount);
     event OfferCancelled(uint256 indexed tokenId, address indexed bidder, uint256 amount);
     event OfferAccepted(uint256 indexed tokenId, address indexed seller, address indexed bidder, uint256 amount);
+    event RefundQueued(uint256 indexed tokenId, address indexed bidder, uint256 amount);
+    event Withdrawn(address indexed account, uint256 amount);
 
     constructor() ERC721("MagaNFT", "MAGANFT") Ownable(msg.sender) {}
 
@@ -76,8 +85,16 @@ contract MagaMarketplace is ERC721URIStorage, Ownable, ReentrancyGuard {
         require(msg.value > current.amount, "Offer too low");
 
         if (current.bidder != address(0)) {
+            // Try to refund the previous bidder directly. If that fails
+            // (e.g. a contract bidder that rejects ETH), credit it to
+            // pendingReturns instead of reverting — otherwise a single
+            // malicious bidder could permanently block anyone else from
+            // ever placing a higher offer on this token.
             (bool refunded, ) = payable(current.bidder).call{value: current.amount}("");
-            require(refunded, "Refund failed");
+            if (!refunded) {
+                pendingReturns[current.bidder] += current.amount;
+                emit RefundQueued(tokenId, current.bidder, current.amount);
+            }
         }
 
         highestOffers[tokenId] = Offer({ bidder: msg.sender, amount: msg.value });
@@ -110,6 +127,17 @@ contract MagaMarketplace is ERC721URIStorage, Ownable, ReentrancyGuard {
         (bool paid, ) = payable(msg.sender).call{value: current.amount}("");
         require(paid, "Payment failed");
         emit OfferAccepted(tokenId, msg.sender, current.bidder, current.amount);
+    }
+
+    /// @notice Lets any account pull ETH that couldn't be auto-refunded
+    /// when it was outbid (see placeOffer()).
+    function withdraw() external nonReentrant {
+        uint256 amount = pendingReturns[msg.sender];
+        require(amount > 0, "Nothing to withdraw");
+        pendingReturns[msg.sender] = 0;
+        (bool sent, ) = payable(msg.sender).call{value: amount}("");
+        require(sent, "Withdraw failed");
+        emit Withdrawn(msg.sender, amount);
     }
 
     function _clearListing(uint256 tokenId, address owner) internal {
