@@ -1,13 +1,14 @@
 // frontend/src/components/MintSection.jsx
 import { useState, useEffect, useRef } from 'react';
+import { UploadCloud } from 'lucide-react';
 import { useWeb3 } from '../hooks/Web3Context.js';
 
 // The backend API base URL for image/metadata upload
-const apiBase = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000'; 
+const apiBase = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000';
 
 export const MintSection = () => {
   // Use contractWithSigner for all state-changing transactions
-  const { contractWithSigner, account } = useWeb3(); 
+  const { contractWithSigner, account } = useWeb3();
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
   const [file, setFile] = useState(null);
@@ -157,8 +158,8 @@ export const MintSection = () => {
   return (
     <section className="app-card scene-enter p-6 sm:p-7">
       <div className="mb-6">
-        <p className="uppercase tracking-[0.2em] text-[11px] text-teal-200/70 mb-2">Creator Studio</p>
-        <h2 className="text-2xl sm:text-3xl font-bold text-slate-50">Create New NFT</h2>
+        <p className="uppercase tracking-[0.2em] text-[11px] text-[color:var(--brand)]/80 mb-2">Creator Studio</p>
+        <h2 className="text-2xl sm:text-3xl font-semibold text-slate-50">Create New NFT</h2>
       </div>
       
       {/* NFT Metadata Inputs */}
@@ -182,8 +183,8 @@ export const MintSection = () => {
       <div 
           className={`flex flex-col items-center justify-center p-6 mb-4 rounded-xl border-2 border-dashed transition duration-300 cursor-pointer 
             ${isDragging 
-                ? 'border-teal-300 bg-teal-500/10 ring-2 ring-teal-300/60' 
-                : 'border-slate-600 hover:border-teal-300 hover:bg-slate-700/40'
+                ? 'border-[color:var(--brand)] bg-[color:var(--brand)]/10 ring-2 ring-[color:var(--brand)]/50' 
+                : 'border-[color:var(--toggle-border)] hover:border-[color:var(--brand)] hover:bg-black/20'
             }
           `}
           onDragEnter={handleDragEnter}
@@ -206,23 +207,21 @@ export const MintSection = () => {
           {/* Content for the drop zone */}
           {!filePreview && (
             <div className='text-center'>
-                <svg className="mx-auto h-12 w-12 text-gray-400" stroke="currentColor" fill="none" viewBox="0 0 48 48" aria-hidden="true">
-                    <path d="M28 8H10c-1.1 0-2 .9-2 2v28c0 1.1.9 2 2 2h28c1.1 0 2-.9 2-2V20M20 16v16m-8-8h16m12-8l-8-8m0 8l8 8" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                </svg>
-                <p className="mt-1 text-sm text-slate-300">Drag and drop image here, or <span className="text-teal-300 font-semibold">click to select</span></p>
-                <p className="text-xs text-gray-500">PNG, JPG, GIF up to 5MB</p>
+                <UploadCloud className="mx-auto h-10 w-10 text-slate-500" strokeWidth={1.5} aria-hidden="true" />
+                <p className="mt-2 text-sm text-slate-300">Drag and drop image here, or <span className="text-[color:var(--brand)] font-semibold">click to select</span></p>
+                <p className="text-xs text-gray-500">PNG, JPG, GIF up to 10MB</p>
             </div>
           )}
 
           {/* Image Preview */}
           {filePreview && (
-              <div className="relative w-full h-40 rounded-lg overflow-hidden border border-gray-600/50">
+              <div className="relative w-full h-40 rounded-lg overflow-hidden border border-[color:var(--line)]">
                   <img 
                       src={filePreview} 
                       alt="NFT Preview" 
                       className="w-full h-full object-cover"
                   />
-                  <div className="absolute inset-0 bg-black/30 flex items-center justify-center opacity-0 hover:opacity-100 transition duration-300">
+                  <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 hover:opacity-100 transition duration-300">
                       <p className='text-white font-bold text-center'>Click or Drag to Change</p>
                   </div>
               </div>
@@ -231,7 +230,7 @@ export const MintSection = () => {
 
       {/* Messages */}
       {error && <p className="text-red-300 mb-4 font-semibold text-center">{error}</p>}
-      {success && <p className="text-emerald-300 mb-4 font-semibold text-center">{success}</p>}
+      {success && <p className="text-[color:var(--brand)] mb-4 font-semibold text-center">{success}</p>}
       
       {/* Mint Button */}
       <button
@@ -241,7 +240,7 @@ export const MintSection = () => {
       >
         {loading ? (
           <span className="flex items-center justify-center">
-            <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+            <svg className="animate-spin -ml-1 mr-3 h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
               <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
               <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
             </svg>

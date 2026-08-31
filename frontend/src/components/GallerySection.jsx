@@ -217,23 +217,23 @@ export const GallerySection = () => {
   return (
     <section className="app-card scene-enter-delayed p-4 sm:p-6">
       <div className="mb-6">
-        <p className="uppercase tracking-[0.2em] text-[11px] text-teal-200/70 mb-2">Marketplace</p>
-        <h2 className="text-xl sm:text-2xl font-extrabold text-slate-100">Discover and Trade</h2>
+        <p className="uppercase tracking-[0.2em] text-[11px] text-[color:var(--brand)]/80 mb-2">Marketplace</p>
+        <h2 className="text-xl sm:text-2xl font-semibold text-slate-100">Discover and Trade</h2>
       </div>
 
       <div className="flex flex-col sm:flex-row gap-4 mb-6 justify-between items-center">
-        <div className="flex space-x-2 p-1 bg-slate-900/70 rounded-lg border border-slate-700/60 w-full sm:w-auto text-xs sm:text-sm">
+        <div className="flex space-x-2 p-1 bg-black/25 rounded-lg border border-[color:var(--line)] w-full sm:w-auto text-xs sm:text-sm">
           <button
             type="button"
             onClick={() => setView('all')}
-            className={`flex-1 px-3 py-1 rounded-lg font-semibold transition ${view === 'all' ? 'bg-teal-300 text-[#10242f]' : 'text-gray-300 hover:bg-slate-700/70'}`}
+            className={`flex-1 px-3 py-1 rounded-lg font-semibold transition ${view === 'all' ? 'bg-[color:var(--brand)] text-[#052024]' : 'text-gray-300 hover:bg-white/5'}`}
           >
             All NFTs
           </button>
           <button
             type="button"
             onClick={() => setView('my')}
-            className={`flex-1 px-3 py-1 rounded-lg font-semibold transition ${view === 'my' ? 'bg-teal-300 text-[#10242f]' : 'text-gray-300 hover:bg-slate-700/70'}`}
+            className={`flex-1 px-3 py-1 rounded-lg font-semibold transition ${view === 'my' ? 'bg-[color:var(--brand)] text-[#052024]' : 'text-gray-300 hover:bg-white/5'}`}
           >
             My NFTs
           </button>
@@ -255,7 +255,7 @@ export const GallerySection = () => {
       </div>
 
       {loading ? (
-        <div className="text-center py-12 text-teal-200 font-bold text-base">Loading NFTs from IPFS...</div>
+        <div className="text-center py-12 text-[color:var(--brand)] font-semibold text-base">Loading NFTs from IPFS...</div>
       ) : filteredNfts.length === 0 ? (
         <div className="text-center py-12 text-gray-400 text-sm">No NFTs found. Mint one or update your filters.</div>
       ) : (

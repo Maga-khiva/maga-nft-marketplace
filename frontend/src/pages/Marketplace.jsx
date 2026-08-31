@@ -13,31 +13,25 @@ const WalletIcon = () => (
   </svg>
 );
 
-const SunIcon = () => (
-  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" className="h-4 w-4 sm:h-5 sm:w-5" fill="none" stroke="currentColor" strokeWidth="2">
-    <circle cx="12" cy="12" r="4" />
-    <path d="M12 2v2.5M12 19.5V22M4.93 4.93l1.77 1.77M17.3 17.3l1.77 1.77M2 12h2.5M19.5 12H22M4.93 19.07l1.77-1.77M17.3 6.7l1.77-1.77" />
+// A small orbiting-dots motif tied to the "Orbit" name — the one
+// deliberate animated moment on the page. Purely decorative/aria-hidden.
+const OrbitVisual = () => (
+  <svg width="100%" height="100%" viewBox="0 0 220 220" role="img" aria-hidden="true">
+    <circle cx="110" cy="110" r="7" fill="var(--accent-gold)" />
+    <g className="orbit-ring-cw">
+      <circle cx="110" cy="110" r="62" fill="none" stroke="var(--line)" strokeWidth="1" />
+      <circle cx="172" cy="110" r="5.5" fill="var(--brand)" />
+    </g>
+    <g className="orbit-ring-ccw">
+      <circle cx="110" cy="110" r="98" fill="none" stroke="var(--line)" strokeWidth="1" />
+      <circle cx="110" cy="12" r="4.5" fill="var(--accent-warm)" />
+      <circle cx="24" cy="152" r="3.5" fill="var(--muted)" />
+    </g>
   </svg>
 );
-
-const MoonIcon = () => (
-  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" className="h-4 w-4 sm:h-5 sm:w-5" fill="none" stroke="currentColor" strokeWidth="2">
-    <path d="M21 12.8A9 9 0 1 1 11.2 3a7.2 7.2 0 0 0 9.8 9.8Z" />
-  </svg>
-);
-
-const THEME_STORAGE_KEY = 'maga-ui-theme';
-
-const getInitialTheme = () => {
-  if (typeof window === 'undefined') return 'dark';
-  const storedTheme = window.localStorage.getItem(THEME_STORAGE_KEY);
-  if (storedTheme === 'light' || storedTheme === 'dark') return storedTheme;
-  return window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
-};
 
 export const Marketplace = () => {
   const { account, connectWallet, web3Error, chainId } = useWeb3();
-  const [theme, setTheme] = useState(getInitialTheme);
   const [showBottomPushButton, setShowBottomPushButton] = useState(false);
   const requiredChainId = Number(import.meta.env.VITE_REQUIRED_CHAIN_ID || 11155111);
 
@@ -52,14 +46,11 @@ export const Marketplace = () => {
   const isTargetNetwork = chainId === requiredChainId;
   const networkLabel = requiredChainId === 11155111 ? 'Sepolia' : `Chain ${requiredChainId}`;
 
+  // Site is dark-only now, set once for mobile browser chrome color.
   useEffect(() => {
-    document.documentElement.setAttribute('data-theme', theme);
-    window.localStorage.setItem(THEME_STORAGE_KEY, theme);
     const themeMeta = document.querySelector('meta[name="theme-color"]');
-    if (themeMeta) {
-      themeMeta.setAttribute('content', theme === 'light' ? '#f1f5f9' : '#0f1824');
-    }
-  }, [theme]);
+    if (themeMeta) themeMeta.setAttribute('content', '#0a0e17');
+  }, []);
 
   useEffect(() => {
     const onScroll = () => {
@@ -94,29 +85,18 @@ export const Marketplace = () => {
             <div className="app-brand-mark">
               <img src={logoImage} alt="MAGA Orbit logo" className="h-5 w-5 sm:h-6 sm:w-6 object-contain" />
             </div>
-            <h1 className="text-sm sm:text-xl font-bold tracking-wide">
+            <h1 className="text-sm sm:text-xl font-semibold tracking-wide">
               MAGA ORBIT MARKET
             </h1>
           </button>
 
           <div className="flex items-center text-xs sm:text-sm space-x-2 sm:space-x-4">
-            <button
-              type="button"
-              className="theme-toggle"
-              onClick={() => setTheme((current) => (current === 'dark' ? 'light' : 'dark'))}
-              aria-label={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`}
-              title={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`}
-            >
-              {theme === 'dark' ? <SunIcon /> : <MoonIcon />}
-              <span className="hidden sm:inline">{theme === 'dark' ? 'Light' : 'Dark'}</span>
-            </button>
-
-            <span className={`status-pill network-pill ${isTargetNetwork ? 'network-pill-ok' : 'network-pill-warn'}`}>
+            <span className={`status-pill network-pill font-data ${isTargetNetwork ? 'network-pill-ok' : 'network-pill-warn'}`}>
                 {isTargetNetwork ? networkLabel : 'Wrong Network'}
             </span>
 
             {accountString ? (
-                <a href="#mint-section" className="app-button-secondary flex items-center">
+                <a href="#mint-section" className="app-button-secondary font-data flex items-center">
                     <WalletIcon />
                     <span className="hidden sm:inline">{shortAddress}</span>
                     <span className="inline sm:hidden">Wallet</span>
@@ -136,18 +116,26 @@ export const Marketplace = () => {
       <main className="pt-20 sm:pt-24 pb-12 min-h-screen"> 
         <div className="container mx-auto px-4 sm:px-6 max-w-7xl">
 
-          <div className="text-center mb-10 sm:mb-12 scene-enter">
-            <p className="uppercase tracking-[0.26em] text-[11px] text-sky-200/75 mb-3">Modern on-chain marketplace</p>
-            <h1 className="hero-title text-3xl sm:text-5xl md:text-6xl font-black bg-clip-text text-transparent bg-gradient-to-r from-teal-200 via-cyan-100 to-blue-200 drop-shadow-2xl">
-              Mint. List. Trade.
-            </h1>
-            <p className="text-sm sm:text-lg text-slate-300 mt-3 sm:mt-4 max-w-3xl mx-auto">
-              A cleaner, faster NFT flow with live wallet state, safer listings, and responsive trading UI.
-            </p>
-            <div className="mt-6 flex flex-wrap items-center justify-center gap-2">
-              <span className="status-pill bg-slate-700/60 text-slate-200 border border-slate-500/40">ERC-721</span>
-              <span className="status-pill bg-slate-700/60 text-slate-200 border border-slate-500/40">IPFS Metadata</span>
-              <span className="status-pill bg-slate-700/60 text-slate-200 border border-slate-500/40">Real-time Events</span>
+          <div className="grid grid-cols-1 md:grid-cols-5 gap-8 md:gap-6 items-center mb-12 sm:mb-16 scene-enter">
+            <div className="md:col-span-3">
+              <h1 className="text-3xl sm:text-5xl md:text-6xl font-semibold leading-[1.08] text-slate-50">
+                Every trade has
+                <br />
+                a gravity of its own.
+              </h1>
+              <p className="text-sm sm:text-lg text-slate-400 mt-4 sm:mt-5 max-w-xl">
+                Mint, list, and bid on NFTs settled entirely on-chain — no order book, no middleman.
+              </p>
+              <div className="mt-6 flex flex-wrap items-center gap-2">
+                <span className="font-data text-[10px] tracking-wide text-[color:var(--muted)] border border-[color:var(--line)] rounded px-2 py-1">ERC-721</span>
+                <span className="font-data text-[10px] tracking-wide text-[color:var(--muted)] border border-[color:var(--line)] rounded px-2 py-1">IPFS Metadata</span>
+                <span className="font-data text-[10px] tracking-wide text-[color:var(--muted)] border border-[color:var(--line)] rounded px-2 py-1">Real-time Events</span>
+              </div>
+            </div>
+            <div className="md:col-span-2 flex justify-center md:justify-end">
+              <div className="w-40 h-40 sm:w-52 sm:h-52">
+                <OrbitVisual />
+              </div>
             </div>
           </div>
 
@@ -186,7 +174,7 @@ export const Marketplace = () => {
       </main>
 
       <footer className="app-footer py-6 border-t text-center text-xs backdrop-blur-sm">
-        &copy; {new Date().getFullYear()} MAGA Orbit Market. Built with Hardhat & React.
+        &copy; {new Date().getFullYear()} MAGA Orbit Market. Built with Hardhat &amp; React.
       </footer>
 
       <button
