@@ -6,6 +6,38 @@ import { ImageDetailsModal } from './gallery/ImageDetailsModal.jsx';
 import { ActionModal } from './gallery/ActionModal.jsx';
 import { getSuggestedOfferInput, parsePriceToWei } from './gallery/priceUtils.js';
 
+// ---------------------------------------------------------------------------
+// IPFS URL resolution — kept in ONE place so a typo here can't silently
+// break every image/metadata fetch again. Tries Pinata's gateway first
+// (fast, reliable, CORS-friendly since we already pin through Pinata),
+// then falls back to ipfs.io if Pinata is ever unreachable.
+// ---------------------------------------------------------------------------
+const IPFS_GATEWAYS = [
+  'https://gateway.pinata.cloud/ipfs/',
+  'https://ipfs.io/ipfs/',
+];
+
+function resolveIpfsUri(uri, gatewayIndex = 0) {
+  if (!uri) return null;
+  if (!uri.startsWith('ipfs://')) return uri; // already a plain http(s) URL
+  const cid = uri.slice('ipfs://'.length);
+  return `${IPFS_GATEWAYS[gatewayIndex]}${cid}`;
+}
+
+async function fetchJsonWithGatewayFallback(ipfsUri) {
+  let lastError;
+  for (let i = 0; i < IPFS_GATEWAYS.length; i++) {
+    try {
+      const res = await fetch(resolveIpfsUri(ipfsUri, i));
+      if (!res.ok) throw new Error(`Gateway responded with ${res.status}`);
+      return await res.json();
+    } catch (err) {
+      lastError = err;
+    }
+  }
+  throw lastError;
+}
+
 export const GallerySection = () => {
   const { contract, account: rawAccount, signer } = useWeb3();
 
@@ -44,15 +76,14 @@ export const GallerySection = () => {
           const listingSeller = await contract.listingSellers(i);
           const highestOffer = await contract.highestOffers(i);
 
-          const metadataRes = await fetch(uri.replace('ipfs://', 'https://gateway.pinata.cloud/ipfs/<CID>'));
-          const metadata = await metadataRes.json();
+          const metadata = await fetchJsonWithGatewayFallback(uri);
 
           items.push({
             tokenId: i,
             owner,
             name: metadata.name || 'Unnamed NFT',
             description: metadata.description || '',
-            image: metadata.image ? metadata.image.replace('ipfs://', 'https://gateway.pinata.cloud/ipfs/<CID>') : null,
+            image: resolveIpfsUri(metadata.image),
             price: listingPrice,
             listingSeller,
             topOfferBidder: highestOffer[0],
