@@ -22,6 +22,8 @@
 
 The project also doubles as a security case study: the contract shipped with a 37-test Hardhat suite and a documented audit that found and fixed a real denial-of-service vulnerability in the bidding flow. See **[AUDIT_NOTES.md](./AUDIT_NOTES.md)** for the full writeup.
 
+![Maga Orbit Market screenshot](./screenshot.png)
+
 ---
 
 ## Live Links
@@ -30,20 +32,30 @@ The project also doubles as a security case study: the contract shipped with a 3
 |---|---|
 | 🌐 Frontend | [maga-nft-marketplace.netlify.app](https://maga-nft-marketplace.netlify.app/) |
 | ⚙️ Backend API | [maga-nft-marketplace.onrender.com](https://maga-nft-marketplace.onrender.com) |
-| 📄 Contract (Sepolia) | [`0x3eCc0a9De856Fc9169668a3e581A4C513F61C369`](https://sepolia.etherscan.io/address/0x3eCc0a9De856Fc9169668a3e581A4C513F61C369) |
+| 📄 Contract (Sepolia) | [`0xf30D5f12Bee4fB2781969a29EBf38B89be5B8210`](https://eth-sepolia.blockscout.com/address/0xf30D5f12Bee4fB2781969a29EBf38B89be5B8210#code) |
 
-![Maga NFT Marketplace Screenshot](./docs/screenshot.png)
+---
+
+## Design
+
+The UI follows a single visual concept tied to the product's name — **orbit**: trading as gravity, assets moving between owners. Dark-only by design, built around three tokens:
+
+- **Glacier ice** (`#7fe8dd`) — secondary accent, bidding actions
+- **Aurora coral** (`#ff6f91`) — the one bold signature color, reserved for the primary action per screen (Mint, Buy Now)
+- **Comet gold** (`#f2c14e`) — price emphasis and the "Listed" state
+
+Headlines use **Fraunces** (serif) for a deliberate contrast against the **IBM Plex Sans/Mono** UI — prices, addresses, and token IDs render in monospace for ticker-style alignment, not decoration. The hero features a small orbiting-dots animation as the page's single deliberate motion moment; NFT card state (listed vs. not) is communicated through border color rather than a badge alone.
 
 ---
 
 ## Features
 
 - 🔌 **Wallet connection** via MetaMask, with auto-reconnect and account-change handling
-- 🖼️ **Mint** NFTs with image + metadata uploaded straight to IPFS (Pinata)
+- 🖼️ **Mint** NFTs with image + metadata uploaded straight to IPFS (Pinata), up to 10MB
 - 🔍 **Gallery** with search and "my NFTs" ownership filtering
 - 🏷️ **Fixed-price listings** — list, cancel, or buy in one click
 - 💰 **Escrowed offers** — place a bid, get auto-refunded if outbid, or have the owner accept your offer
-- 🌓 **Responsive UI** with a dark/light theme and an animated glacier-style design
+- 🌐 **Resilient IPFS loading** — both metadata and images fall back across three gateways (Pinata → ipfs.io → Cloudflare) if one is slow or unreachable
 - 🛡️ **Audited contract** — reentrancy-guarded, CEI-ordered, and hardened against refund-based griefing
 
 ---
@@ -66,6 +78,10 @@ The project also doubles as a security case study: the contract shipped with a 3
 ```
 .
 ├── frontend/                    # React dApp
+│   └── src/
+│       ├── pages/Marketplace.jsx
+│       ├── components/          # MintSection, GallerySection, gallery/*
+│       └── utils/ipfs.js        # shared IPFS gateway resolution + fallback
 ├── backend/                     # API for uploads + IPFS pinning
 ├── smart-contracts/
 │   ├── contracts/
@@ -100,7 +116,7 @@ A simple 3-layer dApp:
 ## Smart Contract
 
 **Network:** Sepolia (`11155111`)
-**Address:** [`0x3eCc0a9De856Fc9169668a3e581A4C513F61C369`](https://sepolia.etherscan.io/address/0x3eCc0a9De856Fc9169668a3e581A4C513F61C369)
+**Address:** [`0xf30D5f12Bee4fB2781969a29EBf38B89be5B8210`](https://eth-sepolia.blockscout.com/address/0xf30D5f12Bee4fB2781969a29EBf38B89be5B8210#code) — verified on Blockscout & Sourcify
 
 `MagaMarketplace` combines NFT minting and marketplace logic in a single ERC-721 contract:
 
@@ -186,7 +202,8 @@ cp smart-contracts/.env.example smart-contracts/.env
 ```
 PINATA_API_KEY
 PINATA_API_SECRET
-CORS_ALLOWED_ORIGINS   # include your frontend origin
+CORS_ALLOWED_ORIGINS      # include your frontend origin
+MAX_UPLOAD_BYTES          # optional, defaults to 10MB
 ```
 
 **`frontend/.env`**
@@ -233,12 +250,13 @@ Open `http://localhost:5173`, connect MetaMask to the Hardhat local network, the
 cd smart-contracts
 npm run deploy:sepolia
 npm run export:abi
+npx hardhat verify --network sepolia <NEW_ADDRESS>
 ```
 
 After deployment:
 1. Update `VITE_CONTRACT_ADDRESS` in `frontend/.env`
-2. Update the Netlify env var `VITE_CONTRACT_ADDRESS` (address only, no `KEY=` prefix)
-3. Redeploy the frontend
+2. Update the Netlify env var `VITE_CONTRACT_ADDRESS` (address only, no `KEY=` prefix), then trigger a **clear cache and deploy** — Vite bakes env vars in at build time, so a plain redeploy without cache-clear can still serve the old address
+3. Update the contract address in this README
 
 ---
 
@@ -288,7 +306,13 @@ Your env var value is wrong. Set it to only `0x...`, nothing else.
 <details>
 <summary>Mint stuck on "Processing…" on the hosted app</summary>
 
-Check `VITE_API_BASE_URL` and the backend's CORS settings.
+Check `VITE_API_BASE_URL` and the backend's CORS settings. If the Render backend logs show `MulterError: File too large`, the image exceeds `MAX_UPLOAD_BYTES` — either shrink the image or raise the limit.
+</details>
+
+<details>
+<summary>NFT images don't load / show a broken-image icon</summary>
+
+The frontend tries three IPFS gateways in order (Pinata → ipfs.io → Cloudflare) before giving up — see `frontend/src/utils/ipfs.js`. A single slow gateway on a freshly-pinned file usually resolves itself within a page refresh or two.
 </details>
 
 <details>
@@ -301,9 +325,8 @@ Local Hardhat chain data is separate from Sepolia — they're different networks
 
 ## Roadmap
 
-- [ ] Redeploy a fresh contract instance with the pull-payment fix live on Sepolia
-- [ ] Frontend visual redesign
 - [ ] Extend pull-payment protection to `buy()` / `acceptOffer()` for full consistency (see Finding 2 in [AUDIT_NOTES.md](./AUDIT_NOTES.md))
+- [ ] Optional light theme (currently dark-only by design)
 
 ---
 
