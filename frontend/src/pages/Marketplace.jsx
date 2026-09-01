@@ -131,6 +131,16 @@ export const Marketplace = () => {
                 <span className="font-data text-[10px] tracking-wide text-[color:var(--muted)] border border-[color:var(--line)] rounded px-2 py-1">IPFS Metadata</span>
                 <span className="font-data text-[10px] tracking-wide text-[color:var(--muted)] border border-[color:var(--line)] rounded px-2 py-1">Real-time Events</span>
               </div>
+              {accountString && (
+                <div className="mt-6 flex flex-wrap items-center gap-3">
+                  <a href="#mint-section" className="app-button-primary py-2.5 px-5 text-sm">
+                    Start minting
+                  </a>
+                  <a href="#gallery-section" className="app-button-secondary py-2.5 px-5 text-sm">
+                    View marketplace
+                  </a>
+                </div>
+              )}
             </div>
             <div className="md:col-span-2 flex justify-center md:justify-end">
               <div className="w-40 h-40 sm:w-52 sm:h-52">

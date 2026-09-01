@@ -346,17 +346,30 @@ textarea,
   background: #0a0e17;
 }
 
-.nft-card-image {
+/* Blurred, scaled-up copy of the same image fills the frame behind the
+   real image, so any aspect ratio looks intentional instead of cropped —
+   no requirement that source art be square. */
+.nft-card-image-bg {
+  position: absolute;
+  inset: 0;
   width: 100%;
   height: 100%;
   object-fit: cover;
-  object-position: center top;
-  transform: scale(1.001);
+  filter: blur(20px) brightness(0.5) saturate(1.15);
+  transform: scale(1.2);
+}
+
+.nft-card-image {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
   transition: transform 360ms ease, filter 260ms ease;
 }
 
 .nft-card:hover .nft-card-image {
-  transform: scale(1.05);
+  transform: scale(1.03);
   filter: saturate(1.06) contrast(1.03);
 }
 
