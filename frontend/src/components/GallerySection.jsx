@@ -35,19 +35,26 @@ export const GallerySection = () => {
     setLoading(true);
     try {
       const total = Number(await contract.totalSupply());
-      const items = [];
+      // Newest first, matching the previous behavior.
+      const tokenIds = Array.from({ length: total }, (_, idx) => total - 1 - idx);
 
-      for (let i = total - 1; i >= 0; i--) {
-        try {
-          const owner = await contract.ownerOf(i);
-          const uri = await contract.tokenURI(i);
-          const listingPrice = await contract.listings(i);
-          const listingSeller = await contract.listingSellers(i);
-          const highestOffer = await contract.highestOffers(i);
+      // Fetch every token's data concurrently instead of one-by-one —
+      // none of these calls depend on each other, so awaiting them in a
+      // sequential loop was paying full round-trip latency N times over
+      // for both the RPC reads and the IPFS metadata fetch.
+      const results = await Promise.allSettled(
+        tokenIds.map(async (i) => {
+          const [owner, uri, listingPrice, listingSeller, highestOffer] = await Promise.all([
+            contract.ownerOf(i),
+            contract.tokenURI(i),
+            contract.listings(i),
+            contract.listingSellers(i),
+            contract.highestOffers(i),
+          ]);
 
           const metadata = await fetchJsonWithGatewayFallback(uri);
 
-          items.push({
+          return {
             tokenId: i,
             owner,
             name: metadata.name || 'Unnamed NFT',
@@ -57,11 +64,18 @@ export const GallerySection = () => {
             listingSeller,
             topOfferBidder: highestOffer[0],
             topOfferAmount: highestOffer[1],
-          });
-        } catch (err) {
-          console.error(`Failed to load NFT ${i}:`, err);
+          };
+        }),
+      );
+
+      const items = [];
+      results.forEach((result, idx) => {
+        if (result.status === 'fulfilled') {
+          items.push(result.value);
+        } else {
+          console.error(`Failed to load NFT ${tokenIds[idx]}:`, result.reason);
         }
-      }
+      });
 
       setNfts(items);
     } catch (error) {
