@@ -19,3 +19,4 @@ lerna-debug.log*
 
 # Local Vite cache
 .vite
+.vscode
