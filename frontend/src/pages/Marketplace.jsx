@@ -85,7 +85,7 @@ export const Marketplace = () => {
             <div className="app-brand-mark">
               <img src={logoImage} alt="MAGA Orbit logo" className="h-5 w-5 sm:h-6 sm:w-6 object-contain" />
             </div>
-            <h1 className="text-sm sm:text-xl font-semibold tracking-wide">
+            <h1 className="text-xs sm:text-xl font-semibold tracking-wide whitespace-nowrap">
               MAGA ORBIT MARKET
             </h1>
           </button>

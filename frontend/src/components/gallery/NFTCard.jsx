@@ -1,19 +1,31 @@
+import { useState } from 'react';
 import { ethers } from 'ethers';
+import { IPFS_GATEWAYS, resolveIpfsUri } from '../../utils/ipfs.js';
 
 const FALLBACK_IMG = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%234B5563' stroke-width='1' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4'%3E%3C/path%3E%3Cpolyline points='7 10 12 15 17 10'%3E%3C/polyline%3E%3Cline x1='12' y1='15' x2='12' y2='3'%3E%3C/line%3E%3C/svg%3E";
-
-const onImgError = (e) => {
-  e.target.onerror = null;
-  e.target.src = FALLBACK_IMG;
-  e.target.style.backgroundColor = '#0a0e17';
-  e.target.style.padding = '30%';
-};
 
 export const NFTCard = ({ nft, account, onOpenImage, onOpenAction }) => {
   const isOwner = account && nft.owner.toLowerCase() === account.toLowerCase();
   const isTopBidder = account && nft.topOfferBidder.toLowerCase() === account.toLowerCase();
   const isListed = nft.price > 0;
   const ownerLabel = isOwner ? 'You' : `${nft.owner.slice(0, 6)}...${nft.owner.slice(-4)}`;
+
+  // Try each IPFS gateway in turn before giving up and showing the
+  // placeholder icon. A single slow/unreachable gateway on one image
+  // shouldn't be a dead end — the metadata fetch already does the same
+  // fallback dance, images need it just as much.
+  const [gatewayIndex, setGatewayIndex] = useState(0);
+  const [exhausted, setExhausted] = useState(false);
+
+  const imageSrc = exhausted ? FALLBACK_IMG : resolveIpfsUri(nft.image, gatewayIndex);
+
+  const handleImageError = () => {
+    if (gatewayIndex < IPFS_GATEWAYS.length - 1) {
+      setGatewayIndex((i) => i + 1);
+    } else {
+      setExhausted(true);
+    }
+  };
 
   return (
     <article
@@ -33,15 +45,18 @@ export const NFTCard = ({ nft, account, onOpenImage, onOpenAction }) => {
       }}
     >
       <div className="nft-card-media">
-        {/* Blurred fill behind the real image so non-square art never looks cropped */}
-        <img src={nft.image} alt="" aria-hidden="true" className="nft-card-image-bg" onError={onImgError} />
+        {/* Blurred fill behind the real image so non-square art never looks
+            cropped. Shares the same src/retry state as the main image but
+            doesn't drive the retry itself, to avoid double-incrementing
+            the gateway index when both tags fail on the same bad URL. */}
+        <img src={imageSrc} alt="" aria-hidden="true" className="nft-card-image-bg" />
         <img
-          src={nft.image}
+          src={imageSrc}
           alt={nft.name}
           loading="lazy"
           decoding="async"
           className="nft-card-image"
-          onError={onImgError}
+          onError={handleImageError}
         />
         <div className="nft-card-sheen" />
         <div className="absolute top-2 right-2 bg-black/70 backdrop-blur-sm text-slate-100 font-data text-[11px] px-2 py-1 rounded-full border border-white/15">

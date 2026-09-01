@@ -1,12 +1,28 @@
+import { useState } from 'react';
 import { ethers } from 'ethers';
 import { Modal } from '../Modal.jsx';
+import { IPFS_GATEWAYS, resolveIpfsUri } from '../../utils/ipfs.js';
+
+const FALLBACK_IMG = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%234B5563' stroke-width='1' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4'%3E%3C/path%3E%3Cpolyline points='7 10 12 15 17 10'%3E%3C/polyline%3E%3Cline x1='12' y1='15' x2='12' y2='3'%3E%3C/line%3E%3C/svg%3E";
 
 export const ImageDetailsModal = ({ open, nft, account, onClose, onOpenAction }) => {
+  const [gatewayIndex, setGatewayIndex] = useState(0);
+  const [exhausted, setExhausted] = useState(false);
+
   if (!nft) return null;
 
   const isOwner = account && nft.owner.toLowerCase() === account.toLowerCase();
   const isTopBidder = account && nft.topOfferBidder.toLowerCase() === account.toLowerCase();
   const isListed = nft.price > 0;
+  const imageSrc = exhausted ? FALLBACK_IMG : resolveIpfsUri(nft.image, gatewayIndex);
+
+  const handleImageError = () => {
+    if (gatewayIndex < IPFS_GATEWAYS.length - 1) {
+      setGatewayIndex((i) => i + 1);
+    } else {
+      setExhausted(true);
+    }
+  };
 
   return (
     <Modal
@@ -27,15 +43,10 @@ export const ImageDetailsModal = ({ open, nft, account, onClose, onOpenAction })
         <div className="grid flex-1 grid-cols-1 gap-4 overflow-y-auto p-4 sm:gap-6 sm:p-6 md:grid-cols-5">
           <div className="md:col-span-3 aspect-square w-full rounded-xl overflow-hidden shadow-2xl border border-[color:var(--brand)]/30 bg-black/40">
             <img
-              src={nft.image}
+              src={imageSrc}
               alt={nft.name}
               className="w-full h-full object-contain bg-[#0a0e17]"
-              onError={(e) => {
-                e.target.onerror = null;
-                e.target.src = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%234B5563' stroke-width='1' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4'%3E%3C/path%3E%3Cpolyline points='7 10 12 15 17 10'%3E%3C/polyline%3E%3Cline x1='12' y1='15' x2='12' y2='3'%3E%3C/line%3E%3C/svg%3E";
-                e.target.style.backgroundColor = '#0a0e17';
-                e.target.style.padding = '30%';
-              }}
+              onError={handleImageError}
             />
           </div>
 
